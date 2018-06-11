@@ -1,0 +1,73 @@
+#!/bin/bash
+
+OS=$1
+USER=$2
+if [ ! -n "$2" ]; then
+	USER=brian
+fi
+
+INT_IF=$3
+if [ ! -n "$3" ]; then
+	INT_IF=eno0
+fi
+
+EXT_IF=$4
+if [ ! -n "$4" ]; then
+	EXT_IF=eno1
+fi
+
+USER_HOME=$(eval echo "~$USER")
+if [ "$USER_HOME" = "~$USER" ]; then
+	echo Unable to find home directory for user \"$USER\"?
+	exit 1
+fi
+
+PKGS=(
+	tmux
+	htop
+	lsof
+	vim
+	zsh
+	tcpdump
+	iptables
+	iptables-persistent
+	sudo
+	ssh
+	curl
+	dnsutils
+	ntp
+	make
+	autoconf
+	gcc
+	gnupg-curl
+	git
+	dnsmasq
+)
+
+# Install and upgrade packages
+#apt update
+#apt upgrade
+#apt -y install  ${PKGS[@]}
+
+# Base Config
+#echo "PATH=\$PATH:$(pwd)\scripts" >> $USER_HOME/.zshrc
+#usermod -aG sudo $USER
+
+# ZSH Config
+#sudo -H -u $USER
+#sh -c "$(\
+#	curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh|\
+#	sed 's:env zsh::g' | \
+#	sed 's:chsh -s .*$::g' \
+#)"
+#echo "ZSH_THEME=\"gallifrey\"" >> $USER_HOME/.zshrc
+
+# Set up DHCP & DNS
+
+# Enable IP Forwarding
+sysctl -w net.ipv4.ip_forward=1 > /dev/null
+# Add permanently
+echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+
+# Set up IPTable Rules
+. ./scripts/init_firewall.sh $INT_IF $EXT_IF
